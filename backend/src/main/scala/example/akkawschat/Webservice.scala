@@ -1,13 +1,8 @@
 package example.akkawschat
 
-import akka.actor.ActorSystem
-
 import akka.http.scaladsl.server.Directives
-import akka.stream.FlowMaterializer
 
-class Webservice(implicit fm: FlowMaterializer, system: ActorSystem) extends Directives {
-  import system.dispatcher
-
+class Webservice extends Directives {
   def route =
     get {
       pathSingleSlash {

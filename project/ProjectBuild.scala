@@ -22,7 +22,7 @@ object ProjectBuild extends Build {
         persistLauncher in Test := false,
         testFrameworks += new TestFramework("utest.runner.Framework"),
         libraryDependencies ++= Seq(
-          "org.scala-js" %%% "scalajs-dom" % "0.8.0",
+          "org.scala-js" %%% "scalajs-dom" % "0.8.1",
           "com.lihaoyi" %%% "utest" % "0.3.0" % "test"
         )
       )
@@ -34,7 +34,7 @@ object ProjectBuild extends Build {
       .settings(commonSettings: _*)
       .settings(
         libraryDependencies ++= Seq(
-          "com.typesafe.akka" %% "akka-http-experimental" % "1.0-RC3",
+          "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
           "org.specs2" %% "specs2" % "2.3.12" % "test"
         ),
         (resourceGenerators in Compile) <+=
@@ -44,6 +44,6 @@ object ProjectBuild extends Build {
       )
 
   def commonSettings = Seq(
-    scalaVersion := "2.11.6"
+    scalaVersion := "2.11.7"
   ) ++ ScalariformSupport.formatSettings
 }
