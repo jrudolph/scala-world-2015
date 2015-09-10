@@ -1,4 +1,4 @@
-package example.akkawschat
+package example.repoanalyzer
 
 import scala.scalajs.js
 

@@ -1,4 +1,4 @@
-package example.akkawschat
+package example.repoanalyzer
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
