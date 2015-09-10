@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    .chart rect {
+        fill: steelblue;
+    }
+
+    .chart text {
+        fill: black;
+        font: 10px sans-serif;
+        text-anchor: start;
+    }
+
+</style>
+<svg class="chart"></svg>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+var width = 1000,
+    barHeight = 20;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var chart = d3.select(".chart")
+    .attr("width", width);
+
+var data = {};
+
+function render(rawData) {
+  var data = d3.entries(rawData);//.sort(function (a, b) { if (a.value > b.value) return -1; else return 1; });
+  var max = d3.max(data, function(d) { return d.value; });
+  //console.log("max is now", max, "from", data);
+  x.domain([0, max]);
+
+  chart.attr("height", barHeight * data.length);
+
+  var bar = chart.selectAll(".bar")
+      .data(data, function(d) { return d.key; })
+    .enter().append("g")
+      .attr("class", "bar")
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+  bar.append("rect")
+    .attr("class", "rect")
+    .attr("width", function(d) { return x(d.value); })
+    .attr("height", barHeight - 1);
+
+  bar.append("text")
+      .attr("class", "label")
+      .attr("x", function(d) { return x(d.value) + 3; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.key; });
+
+  //chart.selectAll(".bar").transition()
+  //  .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+
+  chart.selectAll(".bar")
+    .select(".rect").transition()
+      .attr("width", function(d) { return x(d.value); })
+      .attr("height", barHeight - 1);
+
+  chart.selectAll(".bar")
+    .select(".label").transition()
+      .attr("x", function(d) { return x(d.value) + 3; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em");
+};
+
+var liveData = new WebSocket("ws://localhost:8080/ws/group-counts")
+liveData.onopen = function(event) {
+  console.log("Connected!", event);
+};
+liveData.onmessage = function(event) {
+  var newData = JSON.parse(event.data);
+  var key = newData.groupId;
+  var count = newData.updatedCount;
+  data[key] = count;
+  //console.log("got", event, newData, key, count, data);
+  //console.log("updated data of "+key);
+  render(data);
+};
+
+
+</script>
