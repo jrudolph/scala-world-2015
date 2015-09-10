@@ -28,6 +28,6 @@ object Main extends App {
 
   def tailLog(): Source[ByteString, Unit] = {
     import sys.process._
-    Source("tail -f /opt/spray.io/site.log".lineStream_!.map(ByteString(_, "utf8")))
+    Source("tail -f /opt/spray.io/site.log".lineStream_!.map(str ⇒ ByteString(str + "\n", "utf8")))
   }
 }
