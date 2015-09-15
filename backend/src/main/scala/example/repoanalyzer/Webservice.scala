@@ -9,8 +9,15 @@ import akka.stream.scaladsl.{ Source, Keep, Sink, Flow }
 import akka.util.ByteString
 import spray.json.JsonFormat
 
+import scala.concurrent.Future
+
 class Webservice(implicit system: ActorSystem, materializer: Materializer) extends Directives {
+  // multiplexed source
   import system.dispatcher
+  lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = LogStream.request() map { source ⇒
+    val publisher = source.runWith(Sink.fanoutPublisher[AccessEntryWithGroup](16, 128))
+    Source(publisher)
+  }
 
   def route =
     get {
@@ -49,7 +56,7 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
     } ~ getFromResourceDirectory("web")
 
   def withLogStream: Directive1[Source[AccessEntryWithGroup, Any]] =
-    onSuccess(LogStream.request())
+    onSuccess(theRequest)
 
   def toJsonStringFlow[T: JsonFormat]: Flow[T, String, Any] = {
     import spray.json._
