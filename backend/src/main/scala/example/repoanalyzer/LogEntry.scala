@@ -22,6 +22,7 @@ object RepoLogEntry {
     case e @ LogEntryFormat(timestamp, entries) ⇒
       entries.split(Pattern.quote("|:|")) match {
         case Array(repo, status, ip, userAgent, url) ⇒ RepoLogEntry(0L, repo, status.toInt, ClientInfo(ip, userAgent), url)
+        case _                                       ⇒ OtherEntry(line)
       }
     case _ ⇒ OtherEntry(line)
   }
