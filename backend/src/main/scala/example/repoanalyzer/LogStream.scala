@@ -3,7 +3,7 @@ package example.repoanalyzer
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.coding.Gzip
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.{ HttpResponse, HttpRequest }
 import akka.stream.Materializer
 import akka.stream.io.Framing
 import akka.stream.scaladsl.{ Flow, Source }
@@ -11,30 +11,35 @@ import akka.util.ByteString
 import scala.concurrent.Future
 
 object LogStream {
-  def request()(implicit system: ActorSystem, materializer: Materializer): Future[Source[AccessEntryWithGroup, Any]] = {
+  def requestLogLines()(implicit system: ActorSystem, materializer: Materializer): Future[Source[String, Any]] = {
     import system.dispatcher
-    def runRequest(): Future[Source[ByteString, Any]] = {
-      val request = HttpRequest(uri = "http://[::1]:9002/logs")
-      Http().singleRequest(request).map(_.entity.dataBytes)
-    }
 
-    def handleLogStream(stream: Source[ByteString, Any]): Source[AccessEntryWithGroup, Any] = {
-      stream
-        .via(Gzip.decoderFlow)
-        .via(Framing.delimiter(ByteString("\n"), 10000, true))
-        .map(_.utf8String)
-        .map(RepoLogEntry.parseFromLine)
-        .collect {
-          case entry: RepoLogEntry ⇒ entry
-        }
-        .map(RepositorySearchEntry.fromLogEntry)
-        .collect {
-          case a: AccessEntryWithGroup ⇒ a
-        }
-    }
-
-    runRequest().map(handleLogStream)
+    val request = HttpRequest(uri = "http://[::1]:9002/logs")
+    Http().singleRequest(request).map(extractLinesFromRequest)
   }
+
+  def extractLinesFromRequest(response: HttpResponse): Source[String, Any] =
+    response.entity.dataBytes
+      .via(Gzip.decoderFlow)
+      .via(Framing.delimiter(ByteString("\n"), 10000, true))
+      .map(_.utf8String)
+
+  def requestParsedLogLines()(implicit system: ActorSystem, materializer: Materializer): Future[Source[RepoLogEntry, Any]] =
+    requestLogLines()
+      .map(
+        _.map(RepoLogEntry.parseFromLine)
+          .collect {
+            case entry: RepoLogEntry ⇒ entry
+            // ignore unreadable entries
+          })(system.dispatcher)
+
+  def requestSemanticLogLines()(implicit system: ActorSystem, materializer: Materializer): Future[Source[AccessEntryWithGroup, Any]] =
+    requestParsedLogLines()
+      .map(
+        _.map(RepositorySearchEntry.fromLogEntry)
+          .collect {
+            case a: AccessEntryWithGroup ⇒ a
+          })(system.dispatcher)
 
   case class GroupCountUpdate(groupId: String, updatedCount: Long)
   object GroupCountUpdate {

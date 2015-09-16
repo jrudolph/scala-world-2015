@@ -14,7 +14,7 @@ import scala.concurrent.Future
 class Webservice(implicit system: ActorSystem, materializer: Materializer) extends Directives {
   // multiplexed source
   import system.dispatcher
-  lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = LogStream.request() map { source ⇒
+  lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = LogStream.requestSemanticLogLines() map { source ⇒
     val publisher = source.runWith(Sink.fanoutPublisher[AccessEntryWithGroup](16, 128))
     Source(publisher)
   }

@@ -18,7 +18,7 @@ object ConsoleLogger /*extends App*/ {
   implicit val materiazlier = ActorMaterializer()
   import system.dispatcher
 
-  LogStream.request.onComplete {
+  LogStream.requestSemanticLogLines().onComplete {
     case Success(logStream) ⇒ logStream.runForeach(println)
     case Failure(e) ⇒
       println("Request failed")
