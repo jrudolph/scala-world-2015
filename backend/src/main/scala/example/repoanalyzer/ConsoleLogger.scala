@@ -15,7 +15,7 @@ import scala.util.{ Failure, Success }
 
 object ConsoleLogger /*extends App*/ {
   implicit val system = ActorSystem()
-  implicit val materiazlier = ActorMaterializer()
+  implicit val materializer = ActorMaterializer()
   import system.dispatcher
 
   LogStream.requestSemanticLogLines().onComplete {
