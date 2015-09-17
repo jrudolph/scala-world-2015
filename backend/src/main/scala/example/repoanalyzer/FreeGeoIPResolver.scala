@@ -1,5 +1,7 @@
 package example.repoanalyzer
 
+import java.io.File
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
@@ -31,7 +33,10 @@ object IPInfo {
 class FreeGeoIPResolver()(implicit system: ActorSystem, materializer: Materializer) {
   import system.dispatcher
 
-  def infoFor(ip: IP): Future[IPInfo] = {
+  val cache = JsonCache.create[IP, IPInfo](new File("ip-cache"), _.address, getInfoFor)
+  def infoFor(ip: IP): Future[IPInfo] = cache(ip)
+
+  def getInfoFor(ip: IP): Future[IPInfo] = {
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     Http().singleRequest(freeGeoIpRequest(ip))
       .flatMap { res ⇒
