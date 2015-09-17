@@ -70,7 +70,7 @@ object RepositorySearchEntry {
   val MetadataAccessFormat =
     """http://(\w+)\.spray\.io/(.*)/maven-metadata.xml""".r
 
-  def fromLogEntry(entry: RepoLogEntry, ipInfo: IPInfo): AccessEntry = {
+  def fromLogEntry(entry: RepoLogEntry, ipInfo: Option[IPInfo]): AccessEntry = {
     val requestInfo = RequestInfo(entry.timestampEpoch, ClientInfo(ipInfo, entry.userAgent), entry.statusCode)
 
     entry.url match {

@@ -2,7 +2,9 @@ package example.repoanalyzer
 
 import java.util.regex.Pattern
 
-case class ClientInfo(ipInfo: IPInfo, userAgent: String)
+case class ClientInfo(ipInfo: Option[IPInfo], userAgent: String) {
+  def userAgentProduct: String = userAgent.split("/").headOption.getOrElse("")
+}
 
 sealed trait LogEntry
 case class RepoLogEntry(

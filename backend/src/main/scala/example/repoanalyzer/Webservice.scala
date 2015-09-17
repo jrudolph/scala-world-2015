@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ws.TextMessage
 import akka.http.scaladsl.model.{ HttpResponse, MediaTypes, HttpEntity }
 import akka.http.scaladsl.server.{ Directive1, Directives }
-import akka.stream.Materializer
+import akka.stream.{ OverflowStrategy, Materializer }
 import akka.stream.scaladsl.{ Source, Keep, Sink, Flow }
 import akka.util.ByteString
 import spray.json.{ RootJsonFormat, JsonFormat }
@@ -18,6 +18,13 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
   lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = logStreamer.requestSemanticLogLines() map { source ⇒
     val publisher = source.runWith(Sink.fanoutPublisher[AccessEntryWithGroup](16, 128))
     Source(publisher)
+      .buffer(10, OverflowStrategy.fail)
+      .recover {
+        case e ⇒
+          // helps when a connection fails
+          e.printStackTrace()
+          throw e
+      }
   }
 
   implicit def genericStringCountsFormat = {

@@ -45,10 +45,13 @@ class LogStreamer(implicit system: ActorSystem, materializer: Materializer) {
         // ignore unreadable entries
       }
       .mapAsync(4) { repo ⇒
-        getIpInfoForEntry(repo).map(info ⇒ RepositorySearchEntry.fromLogEntry(repo, info))
+        for {
+          ipInfo ← getIpInfoForEntry(repo)
+          entry = RepositorySearchEntry.fromLogEntry(repo, ipInfo)
+        } yield entry
       }
 
-  def getIpInfoForEntry(entry: RepoLogEntry): Future[IPInfo] =
+  def getIpInfoForEntry(entry: RepoLogEntry): Future[Option[IPInfo]] =
     ipResolver.infoFor(entry.ip)
 
   case class GenericCountUpdate[K](key: K, updatedCount: Long)
