@@ -7,8 +7,16 @@
     }
 
     .chart text {
-        fill: black;
         font: 10px sans-serif;
+    }
+    .chart text.left {
+        fill: white;
+        transform: translate(-3px, 0);
+        text-anchor: end;
+    }
+    .chart text.right {
+        fill: black;
+        transform: translate(3px, 0);
         text-anchor: start;
     }
 
@@ -47,12 +55,17 @@ function render(rawData) {
     .attr("width", function(d) { return x(d.value); })
     .attr("height", barHeight - 1);
 
+  function textClass(d) {
+    if (d.value > max / 2) return "label left";
+    else return "label right";
+  }
+
   bar.append("text")
-      .attr("class", "label")
-      .attr("x", function(d) { return x(d.value) + 3; })
+      .attr("class", textClass)
+      .attr("x", function(d) { return x(d.value); } )
       .attr("y", barHeight / 2)
       .attr("dy", ".35em")
-      .text(function(d) { return d.key; });
+      .text(function(d) { return "" + d.value + ":" + d.key; });
 
   //chart.selectAll(".bar").transition()
   //  .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
@@ -64,9 +77,11 @@ function render(rawData) {
 
   chart.selectAll(".bar")
     .select(".label").transition()
-      .attr("x", function(d) { return x(d.value) + 3; })
+      .attr("class", textClass)
+      .attr("x", function(d) { return x(d.value); } )
       .attr("y", barHeight / 2)
-      .attr("dy", ".35em");
+      .attr("dy", ".35em")
+      .text(function(d) { return "" + d.value + ":" + d.key; });
 };
 
 var liveData = new WebSocket("ws://localhost:8080/ws/group-counts")
