@@ -2,14 +2,15 @@ package example.repoanalyzer
 
 import java.util.regex.Pattern
 
-case class ClientInfo(ip: String, userAgent: String)
+case class ClientInfo(ipInfo: IPInfo, userAgent: String)
 
 sealed trait LogEntry
 case class RepoLogEntry(
   timestampEpoch: Long,
   repository: String,
   statusCode: Int,
-  clientInfo: ClientInfo,
+  ip: IP,
+  userAgent: String,
   url: String) extends LogEntry
 case class OtherEntry(logText: String) extends LogEntry
 
@@ -21,7 +22,7 @@ object RepoLogEntry {
   def parseFromLine(line: String): LogEntry = line match {
     case e @ LogEntryFormat(timestamp, entries) ⇒
       entries.split(Pattern.quote("|:|")) match {
-        case Array(repo, status, ip, userAgent, url) ⇒ RepoLogEntry(0L, repo, status.toInt, ClientInfo(ip, userAgent), url)
+        case Array(repo, status, ip, userAgent, url) ⇒ RepoLogEntry(0L, repo, status.toInt, IP(ip), userAgent, url)
         case _                                       ⇒ OtherEntry(line)
       }
     case _ ⇒ OtherEntry(line)

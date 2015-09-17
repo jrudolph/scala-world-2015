@@ -14,7 +14,8 @@ import scala.concurrent.Future
 class Webservice(implicit system: ActorSystem, materializer: Materializer) extends Directives {
   // multiplexed source
   import system.dispatcher
-  lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = LogStream.requestSemanticLogLines() map { source ⇒
+  lazy val logStreamer = new LogStreamer()
+  lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = logStreamer.requestSemanticLogLines() map { source ⇒
     val publisher = source.runWith(Sink.fanoutPublisher[AccessEntryWithGroup](16, 128))
     Source(publisher)
   }
@@ -31,7 +32,7 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
         } ~
         path("group-counts") {
           withLogStream { stream ⇒
-            complete(streamedToStringResponse(stream.via(LogStream.groupCountUpdates)))
+            complete(streamedToStringResponse(stream.via(logStreamer.groupCountUpdates)))
           }
         } ~
         pathPrefix("ws") {
@@ -44,7 +45,7 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
             path("group-counts") {
               withLogStream { stream ⇒
                 val outStream =
-                  stream.via(LogStream.groupCountUpdates).via(toJsonWSMessage)
+                  stream.via(logStreamer.groupCountUpdates).via(toJsonWSMessage)
                 handleWebsocketMessages(Flow.wrap(Sink.ignore, outStream)(Keep.none))
               }
             }

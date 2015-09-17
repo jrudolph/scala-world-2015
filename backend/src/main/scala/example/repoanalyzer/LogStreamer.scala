@@ -10,10 +10,11 @@ import akka.stream.scaladsl.{ Flow, Source }
 import akka.util.ByteString
 import scala.concurrent.Future
 
-object LogStream {
-  def requestLogLines()(implicit system: ActorSystem, materializer: Materializer): Future[Source[String, Any]] = {
-    import system.dispatcher
+class LogStreamer(implicit system: ActorSystem, materializer: Materializer) {
+  val ipResolver = new FreeGeoIPResolver()
+  import system.dispatcher
 
+  def requestLogLines(): Future[Source[String, Any]] = {
     val request = HttpRequest(uri = "http://[::1]:9002/logs")
     Http().singleRequest(request).map(extractLinesFromRequest)
   }
@@ -24,22 +25,30 @@ object LogStream {
       .via(Framing.delimiter(ByteString("\n"), 10000, true))
       .map(_.utf8String)
 
-  def requestParsedLogLines()(implicit system: ActorSystem, materializer: Materializer): Future[Source[RepoLogEntry, Any]] =
-    requestLogLines()
-      .map(
-        _.map(RepoLogEntry.parseFromLine)
-          .collect {
-            case entry: RepoLogEntry ⇒ entry
-            // ignore unreadable entries
-          })(system.dispatcher)
+  def requestParsedLogLines(): Future[Source[LogEntry, Any]] =
+    requestLogLines().map(_.via(parseLogLines))
 
-  def requestSemanticLogLines()(implicit system: ActorSystem, materializer: Materializer): Future[Source[AccessEntryWithGroup, Any]] =
-    requestParsedLogLines()
-      .map(
-        _.map(RepositorySearchEntry.fromLogEntry)
-          .collect {
-            case a: AccessEntryWithGroup ⇒ a
-          })(system.dispatcher)
+  def requestSemanticLogLines(): Future[Source[AccessEntryWithGroup, Any]] =
+    requestParsedLogLines().map(
+      _.via(analyzeSemantically).collect {
+        case a: AccessEntryWithGroup ⇒ a
+      })
+
+  def parseLogLines: Flow[String, LogEntry, Any] =
+    Flow[String].map(RepoLogEntry.parseFromLine)
+
+  def analyzeSemantically: Flow[LogEntry, AccessEntry, Any] =
+    Flow[LogEntry]
+      .collect {
+        case entry: RepoLogEntry ⇒ entry
+        // ignore unreadable entries
+      }
+      .mapAsync(4) { repo ⇒
+        getIpInfoForEntry(repo).map(info ⇒ RepositorySearchEntry.fromLogEntry(repo, info))
+      }
+
+  def getIpInfoForEntry(entry: RepoLogEntry): Future[IPInfo] =
+    ipResolver.infoFor(entry.ip)
 
   case class GroupCountUpdate(groupId: String, updatedCount: Long)
   object GroupCountUpdate {

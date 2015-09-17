@@ -1,10 +1,7 @@
 package example.repoanalyzer
 
-import spray.json.{ JsValue, RootJsonFormat }
-
 sealed trait AccessEntry {
-  def timestampEpoch: Long
-  def statusCode: Int
+  def requestInfo: RequestInfo
 }
 
 sealed trait AccessEntryWithGroup extends AccessEntry {
@@ -13,9 +10,11 @@ sealed trait AccessEntryWithGroup extends AccessEntry {
 object AccessEntryWithGroup {
   import spray.json._
   import spray.json.DefaultJsonProtocol._
-  implicit def artifactEntryFormat = jsonFormat8(ArtifactAccessEntry)
-  implicit def metadataEntryFormat = jsonFormat3(MetadataAccessEntry)
-  implicit def snapshotMetadataEntryFormat = jsonFormat5(SnapshotMetadataAccessEntry)
+  implicit def clientInfoFormat = jsonFormat2(ClientInfo)
+  implicit def requestInfoFornat = jsonFormat3(RequestInfo)
+  implicit def artifactEntryFormat = jsonFormat7(ArtifactAccessEntry)
+  implicit def metadataEntryFormat = jsonFormat2(MetadataAccessEntry)
+  implicit def snapshotMetadataEntryFormat = jsonFormat4(SnapshotMetadataAccessEntry)
 
   implicit def entryFormat: RootJsonFormat[AccessEntryWithGroup] =
     new RootJsonFormat[AccessEntryWithGroup] {
@@ -29,9 +28,13 @@ object AccessEntryWithGroup {
     }
 }
 
-case class ArtifactAccessEntry(
+case class RequestInfo(
   timestampEpoch: Long,
-  statusCode: Int,
+  clientInfo: ClientInfo,
+  statusCode: Int)
+
+case class ArtifactAccessEntry(
+  requestInfo: RequestInfo,
   repo: String,
   groupId: String,
   moduleId: String,
@@ -40,18 +43,13 @@ case class ArtifactAccessEntry(
   //artifactName: String,
   fileExtension: String) extends AccessEntryWithGroup
 
-case class MetadataAccessEntry(timestampEpoch: Long,
-                               statusCode: Int,
+case class MetadataAccessEntry(requestInfo: RequestInfo,
                                groupId: String) extends AccessEntryWithGroup
-case class SnapshotMetadataAccessEntry(timestampEpoch: Long,
-                                       statusCode: Int,
+case class SnapshotMetadataAccessEntry(requestInfo: RequestInfo,
                                        groupId: String,
                                        module: String,
                                        version: String) extends AccessEntryWithGroup
-case class UnknownAccessEntry(repoLogEntry: RepoLogEntry) extends AccessEntry {
-  def timestampEpoch: Long = repoLogEntry.timestampEpoch
-  def statusCode: Int = repoLogEntry.statusCode
-}
+case class UnknownAccessEntry(repoLogEntry: RepoLogEntry, requestInfo: RequestInfo) extends AccessEntry
 
 object RepositorySearchEntry {
   //http://repo.spray.io/org/springframework/spring-expression/maven-metadata.xml
@@ -72,44 +70,44 @@ object RepositorySearchEntry {
   val MetadataAccessFormat =
     """http://(\w+)\.spray\.io/(.*)/maven-metadata.xml""".r
 
-  def fromLogEntry(entry: RepoLogEntry): AccessEntry = entry.url match {
-    case ArtifactFormat(repo, groupElements, module, version, extra, extension) ⇒
-      ArtifactAccessEntry(
-        entry.timestampEpoch,
-        entry.statusCode,
-        repo,
-        groupElements.split('/').mkString("."),
-        module,
-        version,
-        Some(extra).filter(e ⇒ (e ne null) && e.trim().nonEmpty),
-        extension)
-    case ArtifactSnapshotFormat(repo, groupElements, module, version, snapVersion, extra, extension) ⇒
-      ArtifactAccessEntry(
-        entry.timestampEpoch,
-        entry.statusCode,
-        repo,
-        groupElements.split('/').mkString("."),
-        module,
-        version,
-        Some(extra).filter(e ⇒ (e ne null) && e.trim().nonEmpty),
-        extension)
-    case MetadataSnapshotAccessFormat(repo, groupElements, module, version) ⇒
-      SnapshotMetadataAccessEntry(
-        entry.timestampEpoch,
-        entry.statusCode,
-        groupElements.split('/').mkString("."),
-        module,
-        version)
-    case MetadataAccessFormat(repo, groupElements) ⇒
-      MetadataAccessEntry(
-        entry.timestampEpoch,
-        entry.statusCode,
-        groupElements.split('/').mkString("."))
-    case e @ SimpleEntryFormat(repo, pathElements, fileName, extension) ⇒
-      println(s"Got $repo '$pathElements' '$fileName' '$extension' for '$e'")
-      UnknownAccessEntry(entry)
-    case other ⇒
-      println(s"Got other: '$other'")
-      UnknownAccessEntry(entry)
+  def fromLogEntry(entry: RepoLogEntry, ipInfo: IPInfo): AccessEntry = {
+    val requestInfo = RequestInfo(entry.timestampEpoch, ClientInfo(ipInfo, entry.userAgent), entry.statusCode)
+
+    entry.url match {
+      case ArtifactFormat(repo, groupElements, module, version, extra, extension) ⇒
+        ArtifactAccessEntry(
+          requestInfo,
+          repo,
+          groupElements.split('/').mkString("."),
+          module,
+          version,
+          Some(extra).filter(e ⇒ (e ne null) && e.trim().nonEmpty),
+          extension)
+      case ArtifactSnapshotFormat(repo, groupElements, module, version, snapVersion, extra, extension) ⇒
+        ArtifactAccessEntry(
+          requestInfo,
+          repo,
+          groupElements.split('/').mkString("."),
+          module,
+          version,
+          Some(extra).filter(e ⇒ (e ne null) && e.trim().nonEmpty),
+          extension)
+      case MetadataSnapshotAccessFormat(repo, groupElements, module, version) ⇒
+        SnapshotMetadataAccessEntry(
+          requestInfo,
+          groupElements.split('/').mkString("."),
+          module,
+          version)
+      case MetadataAccessFormat(repo, groupElements) ⇒
+        MetadataAccessEntry(
+          requestInfo,
+          groupElements.split('/').mkString("."))
+      case e @ SimpleEntryFormat(repo, pathElements, fileName, extension) ⇒
+        println(s"Got $repo '$pathElements' '$fileName' '$extension' for '$e'")
+        UnknownAccessEntry(entry, requestInfo)
+      case other ⇒
+        println(s"Got other: '$other'")
+        UnknownAccessEntry(entry, requestInfo)
+    }
   }
 }
