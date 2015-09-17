@@ -75,7 +75,7 @@ liveData.onopen = function(event) {
 };
 liveData.onmessage = function(event) {
   var newData = JSON.parse(event.data);
-  var key = newData.groupId;
+  var key = newData.key;
   var count = newData.updatedCount;
   data[key] = count;
   //console.log("got", event, newData, key, count, data);

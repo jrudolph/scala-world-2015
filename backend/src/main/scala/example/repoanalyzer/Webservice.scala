@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.{ Directive1, Directives }
 import akka.stream.Materializer
 import akka.stream.scaladsl.{ Source, Keep, Sink, Flow }
 import akka.util.ByteString
-import spray.json.JsonFormat
+import spray.json.{ RootJsonFormat, JsonFormat }
 
 import scala.concurrent.Future
 
@@ -18,6 +18,11 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
   lazy val theRequest: Future[Source[AccessEntryWithGroup, Any]] = logStreamer.requestSemanticLogLines() map { source ⇒
     val publisher = source.runWith(Sink.fanoutPublisher[AccessEntryWithGroup](16, 128))
     Source(publisher)
+  }
+
+  implicit def genericStringCountsFormat = {
+    import spray.json.DefaultJsonProtocol._
+    implicitly[RootJsonFormat[logStreamer.GenericCountUpdate[String]]]
   }
 
   def route =
@@ -38,6 +43,7 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
         pathPrefix("ws") {
           path("all-entries") {
             withLogStream { stream ⇒
+
               val outStream = stream.via(toJsonWSMessage)
               handleWebsocketMessages(Flow.wrap(Sink.ignore, outStream)(Keep.none))
             }
@@ -65,7 +71,7 @@ class Webservice(implicit system: ActorSystem, materializer: Materializer) exten
   }
 
   def toJsonWSMessage[T: JsonFormat]: Flow[T, TextMessage, Any] =
-    toJsonStringFlow.map(TextMessage(_))
+    toJsonStringFlow[T].map(TextMessage(_))
 
   def streamedToStringResponse(stream: Source[AnyRef, Any]): HttpResponse =
     HttpResponse(

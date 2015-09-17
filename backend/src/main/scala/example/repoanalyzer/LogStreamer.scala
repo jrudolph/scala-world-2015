@@ -8,6 +8,7 @@ import akka.stream.Materializer
 import akka.stream.io.Framing
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.util.ByteString
+import spray.json.{ RootJsonFormat, JsonFormat }
 import scala.concurrent.Future
 
 class LogStreamer(implicit system: ActorSystem, materializer: Materializer) {
@@ -50,26 +51,30 @@ class LogStreamer(implicit system: ActorSystem, materializer: Materializer) {
   def getIpInfoForEntry(entry: RepoLogEntry): Future[IPInfo] =
     ipResolver.infoFor(entry.ip)
 
-  case class GroupCountUpdate(groupId: String, updatedCount: Long)
-  object GroupCountUpdate {
+  case class GenericCountUpdate[K](key: K, updatedCount: Long)
+  object GenericCountUpdate {
     import spray.json.DefaultJsonProtocol._
-    implicit val updateFormat = jsonFormat2(GroupCountUpdate.apply _)
+    implicit def updateFormat[K: JsonFormat]: RootJsonFormat[GenericCountUpdate[K]] =
+      jsonFormat2(GenericCountUpdate.apply _)
   }
 
-  def groupCountUpdates: Flow[AccessEntryWithGroup, GroupCountUpdate, Unit] = {
+  def histogramUpdates[T, K](groupBy: T ⇒ K): Flow[T, GenericCountUpdate[K], Unit] = {
     case class CountState(
-        lastKey: Option[String],
-        counts: Map[String, Long]) {
-      def increment(key: String): CountState =
+        lastKey: Option[K],
+        counts: Map[K, Long]) {
+      def increment(key: K): CountState =
         new CountState(Some(key),
           counts.updated(key, counts(key) + 1))
     }
     def initialState: CountState = CountState(None, Map.empty.withDefaultValue(0L))
 
-    Flow[AccessEntryWithGroup]
-      .scan(initialState)(_ increment _.groupId)
+    Flow[T]
+      .scan(initialState)((state, element) ⇒ state increment groupBy(element))
       .collect {
-        case CountState(Some(lastKey), counts) ⇒ GroupCountUpdate(lastKey, counts(lastKey))
+        case CountState(Some(lastKey), counts) ⇒ GenericCountUpdate(lastKey, counts(lastKey))
       }
   }
+
+  def groupCountUpdates: Flow[AccessEntryWithGroup, GenericCountUpdate[String], Unit] =
+    histogramUpdates(_.groupId)
 }
