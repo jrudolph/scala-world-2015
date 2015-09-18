@@ -1,43 +1,57 @@
 package example.logservice
 
-import scala.concurrent.Future
-
+import java.util.concurrent.atomic.AtomicLong
+import scala.concurrent.{ Promise, Future }
+import scala.concurrent.duration._
 import akka.http.scaladsl.coding.Gzip
-import akka.stream.scaladsl.{ Flow, Source, Sink }
+import akka.stream.scaladsl.{ Source, Sink }
 import akka.stream.stage._
 import akka.util.ByteString
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 
-import scala.util.control.NoStackTrace
+import scala.io.StdIn
 
 object LogServiceMain extends App {
   implicit val system = ActorSystem("LogService")
+  implicit val materializer = ActorMaterializer()
   import system.dispatcher
-  implicit val fm = ActorMaterializer()
 
-  val file = system.settings.config.getString("log.file")
-  val port = 9002
-  println(s"Serving '$file' at port $port")
+  val config = system.settings.config.getConfig("log-stream")
+  val file = config.getString("file")
+  val port = config.getInt("port")
+  val mode = config.getString("mode")
+  val logStream =
+    mode match {
+      case "tail"   ⇒ tailStream()
+      case "replay" ⇒ replayStream()
+      case _        ⇒ sys.error(s"Invalid configured mode `$mode`")
+    }
 
-  def handler: HttpRequest ⇒ Future[HttpResponse] = {
+  println(s"Serving '$file' at port $port in mode $mode")
+
+  //val binding = Http().bindAndHandleSync(handler, interface = "localhost", port = port)
+  logStream.runForeach(bytes ⇒ println(bytes.utf8String))
+
+  StdIn.readLine()
+  system.shutdown()
+  system.awaitTermination()
+
+  def handler: HttpRequest ⇒ HttpResponse = {
     case req @ HttpRequest(GET, Uri.Path("/logs"), _, entity, _) ⇒
-      entity.dataBytes.runWith(Sink.ignore)
-      val stream = tailLog()
-      Future.successful(
-        Gzip.encode(
-          HttpResponse(entity = HttpEntity.Chunked.fromData(MediaTypes.`text/plain`, stream))))
+      drain(entity)
+      Gzip.encode(HttpResponse(entity = HttpEntity.Chunked.fromData(MediaTypes.`text/plain`, logStream)))
     case req ⇒
-      req.entity.dataBytes.runWith(Sink.ignore)
-      Future.successful(HttpResponse(404, entity = "Not found!"))
+      drain(req.entity)
+      HttpResponse(404, entity = "Not found!")
   }
-  val binding = Http().bindAndHandleAsync(handler, interface = "localhost", port = port)
 
-  def tailLog(): Source[ByteString, Any] = {
+  def drain(entity: HttpEntity): Unit = entity.dataBytes.runWith(Sink.ignore)
+
+  def tailStream(): Source[ByteString, Any] = {
     val proc = new java.lang.ProcessBuilder()
       .command("tail", /*"-n100",*/ "-f", file)
       .start()
@@ -47,26 +61,46 @@ object LogServiceMain extends App {
     def readOne(): Future[ByteString] = Future {
       val buffer = new Array[Byte](8096)
       val read = input.read(buffer)
-      if (read > 0) ByteString.fromArray(buffer, 0, read)
-      else throw CompleteException
+      if (read > 0) ByteString.fromArray(buffer, 0, read) else ByteString.empty
     }
 
-    Source.repeat(0).mapAsync(1)(_ ⇒ readOne()).transform(() ⇒ new PushStage[ByteString, ByteString] {
-      def onPush(elem: ByteString, ctx: Context[ByteString]): SyncDirective = ctx.push(elem)
-
-      override def onUpstreamFailure(cause: Throwable, ctx: Context[ByteString]): TerminationDirective = cause match {
-        case CompleteException ⇒ ctx.finish()
-      }
-
-      override def postStop(): Unit = {
-        println("Destroying")
-        proc.destroy()
-      }
-    })
+    Source.repeat(0)
+      .mapAsync(1)(_ ⇒ readOne())
+      .takeWhile(_.nonEmpty)
+      .transform(() ⇒ new PushStage[ByteString, ByteString] {
+        def onPush(elem: ByteString, ctx: Context[ByteString]): SyncDirective = ctx.push(elem)
+        override def postStop(): Unit = {
+          println("Destroying")
+          proc.destroy()
+        }
+      })
   }
 
-  def printEvent[T](name: String): Flow[T, T, Unit] = Flow[T].log(name)
-  //tailLog().runForeach(println)
-}
+  def replayStream(): Source[ByteString, Any] = {
+    // 09/16 19:26:02.123 DEBUG[lt-dispatcher-8] repo|:|404|:|37.140.181.3|:|Nexus/2.6.0-05 (OSS; Linux; 3.10.69-25; amd64; 1.7.0_80) apacheHttpClient4x/2.6.0-05|:|http://repo.spray.io/org/freemarker/freemarker/maven-metadata.xml
+    val lastClicks = new AtomicLong(Long.MaxValue)
+    Source(() ⇒ io.Source.fromFile(file, "UTF8").getLines())
+      .mapConcat {
+        case line @ r"""(\d+)$m/(\d+)$d (\d+)$h:(\d+)$mm:(\d+)$s\.(\d+)$ss.*""" ⇒
+          val clicks = DateTime(2015, m.toInt, d.toInt, h.toInt, mm.toInt, s.toInt).clicks + ss.toInt
+          List(line -> clicks)
+        case line ⇒
+          println("LogEntryFormat mismatch on line:\n" + line)
+          Nil
+      }
+      .mapAsync(1) {
+        case (line, clicks) ⇒
+          val gap = clicks - lastClicks.getAndSet(clicks)
+          if (gap > 0) {
+            val promise = Promise[String]()
+            system.scheduler.scheduleOnce(gap.millis)(promise.success(line))
+            promise.future
+          } else Future.successful(line)
+      }
+      .map(line ⇒ ByteString(line))
+  }
 
-case object CompleteException extends RuntimeException with NoStackTrace
+  implicit class Regex(sc: StringContext) {
+    def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ ⇒ "x"): _*)
+  }
+}
