@@ -103,10 +103,10 @@ object RepositorySearchEntry {
           requestInfo,
           groupElements.split('/').mkString("."))
       case e @ SimpleEntryFormat(repo, pathElements, fileName, extension) ⇒
-        println(s"Got $repo '$pathElements' '$fileName' '$extension' for '$e'")
+        println(s"Could not parse URI completely $repo '$pathElements' '$fileName' '$extension' for '$e'")
         UnknownAccessEntry(entry, requestInfo)
       case other ⇒
-        println(s"Got other: '$other'")
+        println(s"Could not parse URI at all: '$other'")
         UnknownAccessEntry(entry, requestInfo)
     }
   }
