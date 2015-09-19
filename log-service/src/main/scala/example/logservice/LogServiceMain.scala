@@ -33,17 +33,17 @@ object LogServiceMain extends App {
 
   println(s"Serving '$file' at port $port in mode $mode")
 
-  //val binding = Http().bindAndHandleSync(handler, interface = "localhost", port = port)
-  logStream.runForeach(bytes ⇒ println(bytes.utf8String))
+  val binding = Http().bindAndHandleSync(handler, interface = "localhost", port = port)
+  //logStream.runForeach(bytes ⇒ println(bytes.utf8String))
 
   StdIn.readLine()
   system.shutdown()
   system.awaitTermination()
 
   def handler: HttpRequest ⇒ HttpResponse = {
-    case req @ HttpRequest(GET, Uri.Path("/logs"), _, entity, _) ⇒
+    case req @ HttpRequest(GET, Uri.Path("/log"), _, entity, _) ⇒
       drain(entity)
-      Gzip.encode(HttpResponse(entity = HttpEntity.Chunked.fromData(MediaTypes.`text/plain`, logStream)))
+      Gzip.encode(HttpResponse(entity = HttpEntity.Chunked.fromData(MediaTypes.`text/plain`, logStream.log("A", _.utf8String))))
     case req ⇒
       drain(req.entity)
       HttpResponse(404, entity = "Not found!")
@@ -85,7 +85,7 @@ object LogServiceMain extends App {
           val clicks = DateTime(2015, m.toInt, d.toInt, h.toInt, mm.toInt, s.toInt).clicks + ss.toInt
           List(line -> clicks)
         case line ⇒
-          println("LogEntryFormat mismatch on line:\n" + line)
+          println("log line regex mismatch on line:\n" + line)
           Nil
       }
       .mapAsync(1) {
@@ -93,9 +93,9 @@ object LogServiceMain extends App {
           val gap = clicks - lastClicks.getAndSet(clicks)
           if (gap > 0) {
             val promise = Promise[String]()
-            system.scheduler.scheduleOnce(gap.millis)(promise.success(line))
+            system.scheduler.scheduleOnce(gap.millis)(promise.success(line + '\n'))
             promise.future
-          } else Future.successful(line)
+          } else Future.successful(line + '\n')
       }
       .map(line ⇒ ByteString(line))
   }
