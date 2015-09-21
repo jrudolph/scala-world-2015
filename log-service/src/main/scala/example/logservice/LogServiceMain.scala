@@ -24,15 +24,15 @@ object LogServiceMain extends App {
   val file = config.getString("file")
   val port = config.getInt("port")
   val mode = config.getString("mode")
-  val logStreamBase =
+  def logStreamBase() =
     mode match {
-      case "tail"        ⇒ tailStream()
+      case "tail"        ⇒ tailStream
       case "replay"      ⇒ replayStream(replayGaps)
       case "replay-fast" ⇒ replayStream(dontReplayGaps)
       case _             ⇒ sys.error(s"Invalid configured mode `$mode`")
     }
-  val logStream =
-    logStreamBase
+  def logStream() =
+    logStreamBase()
       .conflate[Either[Int, ByteString]](Right(_)) {
         case (Right(_), _) ⇒ Left(2)
         case (Left(n), _)  ⇒ Left(n + 1)
@@ -54,8 +54,7 @@ object LogServiceMain extends App {
   def handler: HttpRequest ⇒ HttpResponse = {
     case req @ HttpRequest(GET, Uri.Path("/log"), _, entity, _) ⇒
       drain(entity)
-      val response = HttpResponse(entity = HttpEntity.Chunked.fromData(MediaTypes.`text/plain`, logStream))
-      if (mode == "tail") Gzip.encode(response) else response
+      HttpResponse(entity = HttpEntity.Chunked.fromData(MediaTypes.`text/plain`, logStream()))
     case req ⇒
       drain(req.entity)
       HttpResponse(404, entity = "Not found!")
@@ -63,7 +62,7 @@ object LogServiceMain extends App {
 
   def drain(entity: HttpEntity): Unit = entity.dataBytes.runWith(Sink.ignore)
 
-  def tailStream(): Source[ByteString, Any] = {
+  lazy val tailStream: Source[ByteString, Any] = {
     val proc = new java.lang.ProcessBuilder()
       .command("tail", /*"-n100",*/ "-f", file)
       .start()
@@ -80,14 +79,8 @@ object LogServiceMain extends App {
       .mapAsync(1)(_ ⇒ readOne())
       .takeWhile(_.nonEmpty)
       .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 10000, allowTruncation = true))
-      .transform(() ⇒ new PushPullStage[ByteString, ByteString] {
-        def onPush(elem: ByteString, ctx: Context[ByteString]): SyncDirective = {
-          ctx.push(elem)
-          ctx.pull()
-        }
-        def onPull(ctx: Context[ByteString]): SyncDirective = {
-          ctx.pull()
-        }
+      .transform(() ⇒ new PushStage[ByteString, ByteString] {
+        def onPush(elem: ByteString, ctx: Context[ByteString]): SyncDirective = ctx.push(elem ++ ByteString('\n'))
         override def postStop(): Unit = {
           println("Destroying")
           proc.destroy()
