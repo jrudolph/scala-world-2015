@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Country Histogram</title>
+    <style>
+    </style>
+    <script src="/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+
+<table></table>
+
+<script>
+    var liveData = new WebSocket("ws://localhost:8080/country-counts");
+    liveData.onopen = function(event) {
+        console.log("Connected!", event);
+    };
+    liveData.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        var content = $.map(data, function (elem) {
+            var flagPath = "flags/" + elem[0] + ".png";
+            return '<tr><td><img src="' + flagPath + '" /></td><td>' + elem[0] + '</td><td>' + elem[1] + '</td></tr>';
+        });
+        $("table").html("<tr><th>Country</th><th>Code</th><th>Count</th></tr>" + content.join());
+    };
+</script>
+
+</body>
+</html>
