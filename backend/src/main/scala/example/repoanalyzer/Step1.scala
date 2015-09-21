@@ -17,12 +17,11 @@ object Step1 extends App {
   implicit val executionService = system.dispatcher
 
   val logStreamRequest = HttpRequest(uri = "http://localhost:9002/log")
-  val logStreamResponseFuture = Http().singleRequest(logStreamRequest) // Future[HttpResponse]
-  val logLinesStreamFuture: Future[Source[String, Any]] =
-    logStreamResponseFuture.map { response ⇒
-      response.entity.dataBytes // Source[ByteString, Any]
+  def logLinesStreamFuture: Future[Source[String, Any]] =
+    Http().singleRequest(logStreamRequest).map { // Future[HttpResponse]
+      _.entity.dataBytes
         // .via(Gzip.decoderFlow)
-        .map(_.utf8String) // Source[String, Any]
+        .map(_.utf8String)
     }
 
   val config = system.settings.config.getConfig("app")

@@ -1,21 +1,24 @@
 package example.repoanalyzer
 
-import akka.http.scaladsl.coding.Gzip
+import scala.concurrent.Future
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.io.Framing
+import akka.stream.scaladsl.{ Flow, Source }
 import akka.util.ByteString
 
 object Step3 extends Scaffolding with App {
 
-  val logLinesStreamFuture =
-    logStreamResponseFuture.map { response ⇒
-      response.entity.dataBytes // Source[ByteString, Any]
-        .via(Gzip.decoderFlow) // Source[ByteString, Any]
+  def logLinesStreamFuture: Future[Source[RepoAccess, Any]] =
+    Http().singleRequest(logStreamRequest).map { // Future[HttpResponse]
+      _.entity.dataBytes
+        // .via(Gzip.decoderFlow)
         .via(Framing.delimiter(ByteString("\n"),
           maximumFrameLength = 10000, allowTruncation = true))
-        .map(_.utf8String) // Source[String, Any]
+        .map(_.utf8String)
         .mapConcat(line ⇒ RepoAccess.fromLine(line).toList)
+        .via(logFlow)
     }
 
   runWebService {
@@ -25,9 +28,14 @@ object Step3 extends Scaffolding with App {
           HttpResponse(
             entity = HttpEntity.Chunked(
               MediaTypes.`text/plain`,
-              stream.map(x ⇒ ByteString(x.toString, "UTF8"))))
+              stream.map(x ⇒ ByteString(x.toString + "\n\n", "UTF8"))))
         }
       }
     }
+  }
+
+  def logFlow[T] = Flow[T].map { line ⇒
+    println(line.toString.take(80) + "...")
+    line
   }
 }

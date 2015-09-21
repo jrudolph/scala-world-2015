@@ -12,6 +12,7 @@ case class RepoAccess(
     ipInfo: Option[IPInfo],
     accessType: Option[AccessType]) {
 
+  def groupId = accessType.map(_.groupId)
   def userAgentProduct: String = userAgent.split("/").headOption getOrElse ""
   def withIPInfo(ipInfo: IPInfo) = copy(ipInfo = Some(ipInfo))
 }
@@ -22,7 +23,7 @@ object RepoAccess {
 
   // http://repo.spray.io/org/apache/directory/api/api-parent/1.0.0-M20/api-parent-1.0.0-M20.jar
   // http://repo.spray.io/com/typesafe/akka/akka-actor_2.11/2.4-SNAPSHOT/akka-actor_2.11-2.4-SNAPSHOT.pom
-  val ArtifactFormat = """http://\w+\.spray\.io/(.*)/([^/]+)/([^/]+)/.+\.([^\.]+)""".r
+  val ArtifactFormat = """http://\w+\.spray\.io/(.*)/([^/]+)/([^/]+)/.+""".r
 
   // http://nightlies.spray.io/org/springframework/spring-tx/maven-metadata.xml
   // http://repo.spray.io/com/typesafe/akka/akka-actor_2.11/2.4-SNAPSHOT/maven-metadata.xml

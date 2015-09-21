@@ -1,7 +1,29 @@
-<html>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Group-ID Histogram</title>
+    <style>
+    </style>
+    <script src="/jquery-2.1.4.min.js"></script>
+</head>
 <body>
-<div>Hello World!</div>
-<script type="text/javascript" src="frontend-fastopt.js"></script>
-<script type="text/javascript" src="frontend-launcher.js"></script>
+
+<table></table>
+
+<script>
+    var liveData = new WebSocket("ws://localhost:8080/group-counts");
+    liveData.onopen = function(event) {
+        console.log("Connected!", event);
+    };
+    liveData.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        var content = $.map(data, function (elem) {
+            return "<tr><td>" + elem[0] + "</td><td>" + elem[1] + "</td></tr>";
+        });
+        $("table").html("<tr><th>Group ID</th><th>Count</th></tr>" + content.join());
+    };
+</script>
+
 </body>
 </html>

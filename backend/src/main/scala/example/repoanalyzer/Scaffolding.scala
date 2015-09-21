@@ -1,11 +1,10 @@
 package example.repoanalyzer
 
-import akka.http.scaladsl.model.HttpRequest
-
 import scala.io.StdIn
 import scala.util.{ Success, Failure }
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.Http
 
@@ -15,7 +14,6 @@ class Scaffolding {
   implicit val executionService = system.dispatcher
 
   val logStreamRequest = HttpRequest(uri = "http://localhost:9002/log")
-  val logStreamResponseFuture = Http().singleRequest(logStreamRequest) // Future[HttpResponse]
 
   def runWebService(route: Route): Unit = {
     val config = system.settings.config.getConfig("app")

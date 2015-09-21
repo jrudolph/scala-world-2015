@@ -41,7 +41,10 @@ object LogServiceMain extends App {
         case Right(bytes) ⇒ bytes
         case Left(n)      ⇒ ByteString(s"Dropped $n lines")
       }
-      .log("A", _.utf8String)
+      .map { x ⇒
+        println(x.utf8String.slice(6, 80) + "...")
+        x
+      }
 
   println(s"Serving '$file' at port $port in mode $mode")
 
@@ -104,7 +107,7 @@ object LogServiceMain extends App {
           val clicks = DateTime(2015, m.toInt, d.toInt, h.toInt, mm.toInt, s.toInt).clicks + ss.toInt
           List(line -> clicks)
         case line ⇒
-          println("log line regex mismatch on line:\n" + line)
+          // println("log line regex mismatch on line:\n" + line)
           Nil
       }
       .via(gaps)

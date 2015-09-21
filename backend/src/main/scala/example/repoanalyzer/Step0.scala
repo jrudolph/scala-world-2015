@@ -18,9 +18,9 @@ object Step0 extends App {
   val logStreamResponseFuture = Http().singleRequest(logStreamRequest) // Future[HttpResponse]
   val logLinesStreamFuture: Future[Source[String, Any]] =
     logStreamResponseFuture.map { response ⇒
-      response.entity.dataBytes // Source[ByteString, Any]
+      response.entity.dataBytes
         // .via(Gzip.decoderFlow)
-        .map(_.utf8String) // Source[String, Any]
+        .map(_.utf8String)
     }
 
   logLinesStreamFuture.onComplete {
