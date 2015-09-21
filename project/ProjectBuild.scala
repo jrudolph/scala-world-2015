@@ -37,6 +37,8 @@ object ProjectBuild extends Build {
           "io.spray" %% "spray-json" % "1.3.2",
           "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
           "com.typesafe.akka" %% "akka-http-spray-json-experimental" % "1.0",
+          "com.lihaoyi" %% "pprint" % "0.3.6",
+          "org.scala-lang" % "scala-reflect" % "2.11.7",
           "org.specs2" %% "specs2" % "2.3.12" % "test"
         ),
         (resourceGenerators in Compile) <+=
