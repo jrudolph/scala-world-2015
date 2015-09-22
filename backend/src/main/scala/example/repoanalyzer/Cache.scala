@@ -8,7 +8,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.io.Source
 
 trait Cache[K, E] {
-  def apply(t: K): Future[E]
+  def apply(key: K): Future[E]
+  def get(key: K): Option[E]
 }
 
 object JsonCache {
@@ -24,27 +25,30 @@ object JsonCache {
       Source.fromFile(file).mkString.parseJson.convertTo[CacheEntry[K, E]]
 
     new Cache[K, E] {
-      def apply(key: K): Future[E] = {
-        val cached = new File(rootDir, fileName(key) + ".cached")
-        // TODO: avoid double calculation
-
-        if (cached.exists()) Future.successful(load(cached).result)
-        else {
+      def apply(key: K): Future[E] = get(key) match {
+        case Some(e) ⇒ Future.successful(e)
+        case None ⇒
           val res = operation(key)
           res.foreach { r ⇒
             val tmp = File.createTempFile("cache", ".tmp")
             val fos = new FileOutputStream(tmp)
             try {
               fos.write(CacheEntry(key, r).toJson.prettyPrint.getBytes("utf8"))
-              tmp.renameTo(cached)
+              tmp.renameTo(fileFor(key))
             } finally {
               fos.close()
               tmp.delete()
             }
           }
           res
-        }
       }
+
+      def get(key: K): Option[E] = {
+        val cached = fileFor(key)
+        if (cached.exists) Some(load(cached).result)
+        else None
+      }
+      private def fileFor(key: K): File = new File(rootDir, fileName(key) + ".cached")
     }
   }
 
