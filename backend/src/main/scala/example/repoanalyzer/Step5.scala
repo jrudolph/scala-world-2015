@@ -29,6 +29,9 @@ object Step5 extends Scaffolding with App {
       pathSingleSlash {
         getFromResource("web/group-counts-table.html")
       } ~
+        path("bars") {
+          getFromResource("web/group-counts-bars.html")
+        } ~
         path("group-counts") {
           onSuccess(logLinesStreamFuture) { stream ⇒
             import spray.json._
