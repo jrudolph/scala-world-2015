@@ -5,7 +5,6 @@
     .chart rect {
         fill: steelblue;
         fill-opacity: .9;
-        x: 325;
     }
 
     .chart text.label {
@@ -54,6 +53,7 @@ function render(data) {
 
   bar.append("rect")
     .attr("class", "rect")
+    .attr("x", "325")
     .attr("width", function(d) { return x(d.value); })
     .attr("height", barHeight - 1);
 
@@ -85,9 +85,9 @@ function render(data) {
     .select(".rect")
       .attr("width", function(d) { return x(d.value); })
       .attr("height", barHeight - 1);
-};
+}
 
-var liveData = new WebSocket("ws://localhost:8080/group-counts")
+var liveData = new WebSocket("ws://localhost:8080/group-counts");
 liveData.onopen = function(event) {
   console.log("Connected!", event);
 };

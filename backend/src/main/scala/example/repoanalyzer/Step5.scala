@@ -24,28 +24,30 @@ object Step5 extends Scaffolding with App {
         .map(_.toVector.sortBy(-_._2))
     }
 
+  // format: OFF
   runWebService {
     get {
       pathSingleSlash {
         getFromResource("web/group-counts-table.html")
       } ~
-        path("bars") {
-          getFromResource("web/group-counts-bars.html")
-        } ~
-        path("group-counts") {
-          onSuccess(logLinesStreamFuture) { stream ⇒
-            import spray.json._
-            import spray.json.DefaultJsonProtocol._
-            val outStream = stream
-              .map(_.toJson.prettyPrint)
-              .map(ws.TextMessage(_))
-            val flow = Flow.wrap(Sink.ignore, outStream)(Keep.none)
-            handleWebsocketMessages(flow)
-          }
-        } ~
-        getFromResourceDirectory("web")
+      path("bars") {
+        getFromResource("web/group-counts-bars.html")
+      } ~
+      path("group-counts") {
+        onSuccess(logLinesStreamFuture) { stream ⇒
+          import spray.json._
+          import spray.json.DefaultJsonProtocol._
+          val outStream = stream
+            .map(_.toJson.prettyPrint)
+            .map(ws.TextMessage(_))
+          val flow = Flow.wrap(Sink.ignore, outStream)(Keep.none)
+          handleWebsocketMessages(flow)
+        }
+      } ~
+      getFromResourceDirectory("web")
     }
   }
+  // format: ON
 
   def updateHistogram(histogram: GroupIdHistogram,
                       ra: RepoAccess): GroupIdHistogram =

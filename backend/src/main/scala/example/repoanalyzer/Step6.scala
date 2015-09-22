@@ -26,31 +26,33 @@ object Step6 extends Scaffolding with App {
         .map(_.toVector.sortBy(-_._2))
     }
 
+  // format: OFF
   runWebService {
     get {
       pathSingleSlash {
         getFromResource("web/country-counts-table.html")
       } ~
-        path("country-counts") {
-          onSuccess(logLinesStreamFuture) { stream ⇒
-            import spray.json.DefaultJsonProtocol._
-            import spray.json._
-            val outStream = stream
-              .map(_.toJson.prettyPrint)
-              .map(ws.TextMessage(_))
-            val flow = Flow.wrap(Sink.ignore, outStream)(Keep.none)
-            handleWebsocketMessages(flow)
-          }
-        } ~
-        getFromResourceDirectory("web") ~
-        pathPrefix("flags") {
-          mapUnmatchedPath(p ⇒ Uri.Path(p.toString().toLowerCase())) {
-            getFromResourceDirectory("web/flags")
-          } ~
-            getFromResource("web/flags/fam.png")
+      path("country-counts") {
+        onSuccess(logLinesStreamFuture) { stream ⇒
+          import spray.json.DefaultJsonProtocol._
+          import spray.json._
+          val outStream = stream
+            .map(_.toJson.prettyPrint)
+            .map(ws.TextMessage(_))
+          val flow = Flow.wrap(Sink.ignore, outStream)(Keep.none)
+          handleWebsocketMessages(flow)
         }
+      } ~
+      pathPrefix("flags") {
+        mapUnmatchedPath(p ⇒ Uri.Path(p.toString().toLowerCase)) {
+          getFromResourceDirectory("web/flags")
+        } ~
+        getFromResource("web/flags/fam.png")
+      } ~
+      getFromResourceDirectory("web")
     }
   }
+  // format: ON
 
   lazy val ipResolver = new FreeGeoIPResolver()
   def resolveIPInfo(entry: RepoAccess): Future[RepoAccess] =

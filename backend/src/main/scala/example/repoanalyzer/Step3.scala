@@ -1,7 +1,5 @@
 package example.repoanalyzer
 
-import pprint._
-
 import scala.concurrent.Future
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
@@ -30,7 +28,7 @@ object Step3 extends Scaffolding with App {
           HttpResponse(
             entity = HttpEntity.Chunked(
               MediaTypes.`text/plain`,
-              stream.map(x ⇒ ByteString(pprint(x) + "\n\n", "UTF8"))))
+              stream.map(x ⇒ ByteString(pretty(x) + "\n\n", "UTF8"))))
         }
       }
     }
@@ -41,7 +39,8 @@ object Step3 extends Scaffolding with App {
     line
   }
 
-  def pprint[T: PPrint](x: T): String = {
+  import pprint._
+  def pretty[T: PPrint](x: T): String = {
     import Config.Defaults._
     tokenize(x).mkString
   }
