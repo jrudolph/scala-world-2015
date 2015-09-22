@@ -25,6 +25,7 @@ object LogServiceMain extends App {
   val file = config.getString("file")
   val port = config.getInt("port")
   val mode = config.getString("mode")
+  val skip = config.getInt("skip")
   val needsUngzipping = file.endsWith(".gz")
   def logStreamBase() =
     mode match {
@@ -131,10 +132,15 @@ object LogServiceMain extends App {
     SynchronousFileSource(new File(file))
       .via(maybeUnGzip)
       .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 10000))
+      .via(maybeSkipping)
       .map(_.utf8String)
 
   def maybeUnGzip: Flow[ByteString, ByteString, Unit] =
     if (needsUngzipping) Gzip.decoderFlow else Flow[ByteString]
+
+  def maybeSkipping[T]: Flow[T, T, Unit] =
+    if (skip > 0) Flow[T].drop(skip)
+    else Flow[T]
 
   implicit class Regex(sc: StringContext) {
     def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ ⇒ "x"): _*)
