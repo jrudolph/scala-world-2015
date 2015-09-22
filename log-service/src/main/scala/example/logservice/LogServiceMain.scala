@@ -1,7 +1,8 @@
 package example.logservice
 
+import java.io.File
 import java.util.concurrent.atomic.AtomicLong
-import akka.stream.io.Framing
+import akka.stream.io.{ SynchronousFileSource, Framing }
 import scala.concurrent.duration._
 import scala.concurrent.{ Promise, Future }
 import akka.http.scaladsl.coding.Gzip
@@ -24,6 +25,7 @@ object LogServiceMain extends App {
   val file = config.getString("file")
   val port = config.getInt("port")
   val mode = config.getString("mode")
+  val needsUngzipping = file.endsWith(".gz")
   def logStreamBase() =
     mode match {
       case "tail"        ⇒ tailStream
@@ -94,7 +96,7 @@ object LogServiceMain extends App {
 
   def replayStream(gaps: Flow[(String, Long), String, Any]): Source[ByteString, Any] = {
     // 09/16 19:26:02.123 DEBUG[lt-dispatcher-8] repo|:|404|:|37.140.181.3|:|Nexus/2.6.0-05 (OSS; Linux; 3.10.69-25; amd64; 1.7.0_80) apacheHttpClient4x/2.6.0-05|:|http://repo.spray.io/org/freemarker/freemarker/maven-metadata.xml
-    Source(() ⇒ io.Source.fromFile(file, "UTF8").getLines())
+    fileLinesStream
       .mapConcat {
         case line @ r"""(\d+)$m/(\d+)$d (\d+)$h:(\d+)$mm:(\d+)$s\.(\d+)$ss.*""" ⇒
           val clicks = DateTime(2015, m.toInt, d.toInt, h.toInt, mm.toInt, s.toInt).clicks + ss.toInt
@@ -124,6 +126,15 @@ object LogServiceMain extends App {
       while (System.nanoTime() - start < 5000000) {}
       line + '\n'
   }
+
+  def fileLinesStream: Source[String, Any] =
+    SynchronousFileSource(new File(file))
+      .via(maybeUnGzip)
+      .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 10000))
+      .map(_.utf8String)
+
+  def maybeUnGzip: Flow[ByteString, ByteString, Unit] =
+    if (needsUngzipping) Gzip.decoderFlow else Flow[ByteString]
 
   implicit class Regex(sc: StringContext) {
     def r = new util.matching.Regex(sc.parts.mkString, sc.parts.tail.map(_ ⇒ "x"): _*)
