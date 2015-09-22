@@ -5,40 +5,37 @@
     .chart rect {
         fill: steelblue;
         fill-opacity: .9;
+        x: 325;
     }
 
-    .chart text {
+    .chart text.label {
         font: 10px sans-serif;
-    }
-    .chart text.left {
-        fill: white;
-        transform: translate(-3px, 0);
-        text-anchor: end;
-    }
-    .chart text.right {
+        width: 300;
         fill: black;
-        transform: translate(3px, 0);
-        text-anchor: start;
     }
 
+    .chart text.number {
+        font: 10px sans-serif;
+        fill: black;
+    }
 </style>
 <svg class="chart"></svg>
 <script src="/d3.min.js"></script>
 <script src="/jquery-2.1.4.min.js"></script>
 <script>
 
-var width = 1000,
+var width = 500,
     barHeight = 20;
 
 var x = d3.scale.linear()
     .range([0, width]);
 
 var chart = d3.select(".chart")
-    .attr("width", width);
+    .attr("width", width + 400);
 
 function render(data) {
   var max = d3.max(data, function(d) { return d.value; });
-  //console.log("max is now", max, "from", data);
+  console.log("max is now", max);
   x.domain([0, max]);
 
   chart.attr("height", barHeight * data.length);
@@ -49,38 +46,45 @@ function render(data) {
       .attr("class", "bar")
       .attr("transform", function(d, i) { return "translate(0," + d.idx * barHeight + ")"; });
 
+  bar.append("text")
+      .attr("class", "label")
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.key; });
+
   bar.append("rect")
     .attr("class", "rect")
     .attr("width", function(d) { return x(d.value); })
     .attr("height", barHeight - 1);
 
-  function textClass(d) {
-    if (d.value > max / 2) return "label left";
-    else return "label right";
-  }
-
   bar.append("text")
-      .attr("class", textClass)
-      .attr("x", function(d) { return x(d.value); } )
+      .attr("class", "number")
       .attr("y", barHeight / 2)
       .attr("dy", ".35em")
-      .text(function(d) { return "" + d.value + ":" + d.key; });
+      .text(function(d) { return d.value; });
 
-  chart.selectAll(".bar").transition()
+  chart.selectAll(".bar")
     .attr("transform", function(d, i) { return "translate(0," + d.idx * barHeight + ")"; });
 
   chart.selectAll(".bar")
-    .select(".rect").transition()
-      .attr("width", function(d) { return x(d.value); })
-      .attr("height", barHeight - 1);
-
-  chart.selectAll(".bar")
-    .select(".label").transition()
-      .attr("class", textClass)
-      .attr("x", function(d) { return x(d.value); } )
+    .select(".label")
+      .attr("class", "label")
       .attr("y", barHeight / 2)
       .attr("dy", ".35em")
-      .text(function(d) { return "" + d.value + ":" + d.key; });
+      .text(function(d) { return d.key; });
+
+  chart.selectAll(".bar")
+    .select(".number")
+      .attr("class", "number")
+      .attr("x", 301)
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.value; });
+
+  chart.selectAll(".bar")
+    .select(".rect")
+      .attr("width", function(d) { return x(d.value); })
+      .attr("height", barHeight - 1);
 };
 
 var liveData = new WebSocket("ws://localhost:8080/group-counts")
@@ -91,7 +95,6 @@ liveData.onmessage = function(event) {
   var data = $.map(JSON.parse(event.data), function(e, idx) {
     return {"key": e[0], "value": e[1], "idx": idx};
   });
-  console.log(data);
   render(data);
 };
 
