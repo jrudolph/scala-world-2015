@@ -22,6 +22,9 @@ class FreeGeoIPResolver()(implicit system: ActorSystem, materializer: Materializ
   def infoFor(ip: String): Future[Option[IPInfo]] =
     noneIfFailed(orTimeoutIn(5000.millis, cache(ip)))
 
+  def getFromCache(ip: String): Future[Option[IPInfo]] =
+    Future.successful(cache.get(ip))
+
   def getInfoFor(ip: String): Future[IPInfo] = {
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     Http().singleRequest(freeGeoIpRequest(ip))
