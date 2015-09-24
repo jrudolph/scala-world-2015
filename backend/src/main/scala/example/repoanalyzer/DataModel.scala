@@ -18,7 +18,6 @@ case class RepoAccess(
 }
 
 object RepoAccess {
-  // 09/18 16:32:58.850 DEBUG[t-dispatcher-15] repo|:|404|:|116.94.155.132|:|Nexus/1.9.0.2 (OSS; Linux; 2.6.32-33-server; amd64; 1.6.0_31) apacheHttpClient3x/1.9.0.2|:|http://repo.spray.io/org/slf4j/log4j-over-slf4j/maven-metadata.xml
   val LogLineFormat = """(\d+)/(\d+) (\d+):(\d+):(\d+)\.(\d+) \w+\[[^\]]+\] ([a-z]+)\|:\|(\d+).*\|:\|(.+)\|:\|(.+)\|:\|(.+)""".r
 
   // http://repo.spray.io/org/apache/directory/api/api-parent/1.0.0-M20/api-parent-1.0.0-M20.jar
@@ -82,7 +81,6 @@ object AccessType {
     }
 }
 
-// {"ip":"192.30.252.129","country_code":"US","country_name":"United States","region_code":"CA","region_name":"California","city":"San Francisco","zip_code":"94107","time_zone":"America/Los_Angeles","latitude":37.77,"longitude":-122.394,"metro_code":807}
 case class IPInfo(
   country_code: String,
   country_name: String,
