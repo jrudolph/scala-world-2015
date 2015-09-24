@@ -1,0 +1,15 @@
+{
+  "key": "223.122.216.191",
+  "result": {
+    "zip_code": "",
+    "city": "",
+    "region_name": "",
+    "latitude": 35,
+    "metro_code": 0,
+    "longitude": 105,
+    "country_code": "CN",
+    "region_code": "",
+    "time_zone": "",
+    "country_name": "China"
+  }
+}

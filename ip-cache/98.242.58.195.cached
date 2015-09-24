@@ -1,0 +1,15 @@
+{
+  "key": "98.242.58.195",
+  "result": {
+    "zip_code": "93618",
+    "city": "Dinuba",
+    "region_name": "California",
+    "latitude": 36,
+    "metro_code": 866,
+    "longitude": -119,
+    "country_code": "US",
+    "region_code": "CA",
+    "time_zone": "America/Los_Angeles",
+    "country_name": "United States"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "key": "89.126.120.96",
+  "result": {
+    "zip_code": "",
+    "city": "",
+    "region_name": "",
+    "latitude": 53,
+    "metro_code": 0,
+    "longitude": -6,
+    "country_code": "IE",
+    "region_code": "",
+    "time_zone": "Europe/Dublin",
+    "country_name": "Ireland"
+  }
+}

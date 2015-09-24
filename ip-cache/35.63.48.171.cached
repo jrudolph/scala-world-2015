@@ -1,0 +1,15 @@
+{
+  "key": "35.63.48.171",
+  "result": {
+    "zip_code": "48104",
+    "city": "Ann Arbor",
+    "region_name": "Michigan",
+    "latitude": 42,
+    "metro_code": 505,
+    "longitude": -83,
+    "country_code": "US",
+    "region_code": "MI",
+    "time_zone": "America/Detroit",
+    "country_name": "United States"
+  }
+}

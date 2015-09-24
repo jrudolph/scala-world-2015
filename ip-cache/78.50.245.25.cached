@@ -1,0 +1,15 @@
+{
+  "key": "78.50.245.25",
+  "result": {
+    "zip_code": "",
+    "city": "",
+    "region_name": "",
+    "latitude": 51,
+    "metro_code": 0,
+    "longitude": 9,
+    "country_code": "DE",
+    "region_code": "",
+    "time_zone": "",
+    "country_name": "Germany"
+  }
+}

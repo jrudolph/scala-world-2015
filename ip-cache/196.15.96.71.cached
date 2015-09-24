@@ -1,0 +1,15 @@
+{
+  "key": "196.15.96.71",
+  "result": {
+    "zip_code": "2032",
+    "city": "Randburg",
+    "region_name": "Gauteng",
+    "latitude": -26,
+    "metro_code": 0,
+    "longitude": 27,
+    "country_code": "ZA",
+    "region_code": "GP",
+    "time_zone": "Africa/Johannesburg",
+    "country_name": "South Africa"
+  }
+}

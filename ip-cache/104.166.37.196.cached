@@ -1,0 +1,15 @@
+{
+  "key": "104.166.37.196",
+  "result": {
+    "zip_code": "",
+    "city": "Nassau",
+    "region_name": "New Providence District",
+    "latitude": 25,
+    "metro_code": 0,
+    "longitude": -77,
+    "country_code": "BS",
+    "region_code": "NP",
+    "time_zone": "America/Nassau",
+    "country_name": "Bahamas"
+  }
+}

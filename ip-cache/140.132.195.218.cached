@@ -1,0 +1,15 @@
+{
+  "key": "140.132.195.218",
+  "result": {
+    "zip_code": "",
+    "city": "",
+    "region_name": "",
+    "latitude": 23,
+    "metro_code": 0,
+    "longitude": 121,
+    "country_code": "TW",
+    "region_code": "",
+    "time_zone": "Asia/Taipei",
+    "country_name": "Taiwan"
+  }
+}

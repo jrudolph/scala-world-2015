@@ -1,0 +1,15 @@
+{
+  "key": "165.77.182.17",
+  "result": {
+    "zip_code": "43215",
+    "city": "Columbus",
+    "region_name": "Ohio",
+    "latitude": 39,
+    "metro_code": 535,
+    "longitude": -82,
+    "country_code": "US",
+    "region_code": "OH",
+    "time_zone": "America/New_York",
+    "country_name": "United States"
+  }
+}

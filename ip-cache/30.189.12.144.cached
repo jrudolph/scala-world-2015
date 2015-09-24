@@ -1,0 +1,15 @@
+{
+  "key": "30.189.12.144",
+  "result": {
+    "zip_code": "",
+    "city": "",
+    "region_name": "",
+    "latitude": 38,
+    "metro_code": 0,
+    "longitude": -97,
+    "country_code": "US",
+    "region_code": "",
+    "time_zone": "",
+    "country_name": "United States"
+  }
+}

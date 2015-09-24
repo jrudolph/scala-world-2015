@@ -1,0 +1,15 @@
+{
+  "key": "208.163.54.28",
+  "result": {
+    "zip_code": "",
+    "city": "Kingston",
+    "region_name": "Kingston",
+    "latitude": 18,
+    "metro_code": 0,
+    "longitude": -76,
+    "country_code": "JM",
+    "region_code": "01",
+    "time_zone": "America/Jamaica",
+    "country_name": "Jamaica"
+  }
+}

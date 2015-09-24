@@ -1,0 +1,15 @@
+{
+  "key": "182.134.135.144",
+  "result": {
+    "zip_code": "",
+    "city": "Chengdu",
+    "region_name": "Sichuan Sheng",
+    "latitude": 30,
+    "metro_code": 0,
+    "longitude": 104,
+    "country_code": "CN",
+    "region_code": "51",
+    "time_zone": "Asia/Shanghai",
+    "country_name": "China"
+  }
+}

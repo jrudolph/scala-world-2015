@@ -1,0 +1,15 @@
+{
+  "key": "218.197.11.207",
+  "result": {
+    "zip_code": "",
+    "city": "Wuhan",
+    "region_name": "Hubei",
+    "latitude": 30,
+    "metro_code": 0,
+    "longitude": 114,
+    "country_code": "CN",
+    "region_code": "42",
+    "time_zone": "Asia/Shanghai",
+    "country_name": "China"
+  }
+}

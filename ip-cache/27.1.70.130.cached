@@ -1,0 +1,15 @@
+{
+  "key": "27.1.70.130",
+  "result": {
+    "zip_code": "",
+    "city": "Seoul",
+    "region_name": "Seoul",
+    "latitude": 37,
+    "metro_code": 0,
+    "longitude": 126,
+    "country_code": "KR",
+    "region_code": "11",
+    "time_zone": "Asia/Seoul",
+    "country_name": "Republic of Korea"
+  }
+}

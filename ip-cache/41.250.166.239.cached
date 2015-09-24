@@ -1,0 +1,15 @@
+{
+  "key": "41.250.166.239",
+  "result": {
+    "zip_code": "",
+    "city": "",
+    "region_name": "",
+    "latitude": 32,
+    "metro_code": 0,
+    "longitude": -5,
+    "country_code": "MA",
+    "region_code": "",
+    "time_zone": "Africa/Casablanca",
+    "country_name": "Morocco"
+  }
+}

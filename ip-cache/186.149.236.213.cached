@@ -1,0 +1,15 @@
+{
+  "key": "186.149.236.213",
+  "result": {
+    "zip_code": "",
+    "city": "Santo Domingo",
+    "region_name": "Nacional",
+    "latitude": 18,
+    "metro_code": 0,
+    "longitude": -69,
+    "country_code": "DO",
+    "region_code": "01",
+    "time_zone": "America/Santo_Domingo",
+    "country_name": "Dominican Republic"
+  }
+}

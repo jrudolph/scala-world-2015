@@ -1,0 +1,15 @@
+{
+  "key": "165.234.8.200",
+  "result": {
+    "zip_code": "58501",
+    "city": "Bismarck",
+    "region_name": "North Dakota",
+    "latitude": 46,
+    "metro_code": 687,
+    "longitude": -100,
+    "country_code": "US",
+    "region_code": "ND",
+    "time_zone": "America/Chicago",
+    "country_name": "United States"
+  }
+}

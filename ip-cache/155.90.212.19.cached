@@ -1,0 +1,15 @@
+{
+  "key": "155.90.212.19",
+  "result": {
+    "zip_code": "84405",
+    "city": "Ogden",
+    "region_name": "Utah",
+    "latitude": 41,
+    "metro_code": 770,
+    "longitude": -111,
+    "country_code": "US",
+    "region_code": "UT",
+    "time_zone": "America/Denver",
+    "country_name": "United States"
+  }
+}

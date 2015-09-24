@@ -1,0 +1,15 @@
+{
+  "key": "192.193.248.139",
+  "result": {
+    "zip_code": "10013",
+    "city": "New York",
+    "region_name": "New York",
+    "latitude": 40,
+    "metro_code": 501,
+    "longitude": -74,
+    "country_code": "US",
+    "region_code": "NY",
+    "time_zone": "America/New_York",
+    "country_name": "United States"
+  }
+}

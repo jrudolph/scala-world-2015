@@ -1,0 +1,15 @@
+{
+  "key": "56.142.170.250",
+  "result": {
+    "zip_code": "27668",
+    "city": "Raleigh",
+    "region_name": "North Carolina",
+    "latitude": 35,
+    "metro_code": 560,
+    "longitude": -78,
+    "country_code": "US",
+    "region_code": "NC",
+    "time_zone": "America/New_York",
+    "country_name": "United States"
+  }
+}

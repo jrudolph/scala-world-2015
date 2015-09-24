@@ -1,0 +1,15 @@
+{
+  "key": "208.68.58.255",
+  "result": {
+    "zip_code": "62690",
+    "city": "Virden",
+    "region_name": "Illinois",
+    "latitude": 39,
+    "metro_code": 609,
+    "longitude": -89,
+    "country_code": "US",
+    "region_code": "IL",
+    "time_zone": "America/Chicago",
+    "country_name": "United States"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "key": "168.75.222.229",
+  "result": {
+    "zip_code": "01810",
+    "city": "Andover",
+    "region_name": "Massachusetts",
+    "latitude": 42,
+    "metro_code": 506,
+    "longitude": -71,
+    "country_code": "US",
+    "region_code": "MA",
+    "time_zone": "America/New_York",
+    "country_name": "United States"
+  }
+}

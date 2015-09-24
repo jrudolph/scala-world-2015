@@ -1,0 +1,15 @@
+{
+  "key": "221.229.164.250",
+  "result": {
+    "zip_code": "",
+    "city": "Nanjing",
+    "region_name": "Jiangsu Sheng",
+    "latitude": 32,
+    "metro_code": 0,
+    "longitude": 118,
+    "country_code": "CN",
+    "region_code": "32",
+    "time_zone": "Asia/Shanghai",
+    "country_name": "China"
+  }
+}

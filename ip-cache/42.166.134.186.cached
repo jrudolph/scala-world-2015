@@ -1,0 +1,15 @@
+{
+  "key": "42.166.134.186",
+  "result": {
+    "zip_code": "",
+    "city": "Beijing",
+    "region_name": "Beijing Shi",
+    "latitude": 39,
+    "metro_code": 0,
+    "longitude": 116,
+    "country_code": "CN",
+    "region_code": "11",
+    "time_zone": "Asia/Shanghai",
+    "country_name": "China"
+  }
+}

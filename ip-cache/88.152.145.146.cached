@@ -1,0 +1,15 @@
+{
+  "key": "88.152.145.146",
+  "result": {
+    "zip_code": "40724",
+    "city": "Hilden",
+    "region_name": "North Rhine-Westphalia",
+    "latitude": 51,
+    "metro_code": 0,
+    "longitude": 6,
+    "country_code": "DE",
+    "region_code": "NW",
+    "time_zone": "Europe/Berlin",
+    "country_name": "Germany"
+  }
+}

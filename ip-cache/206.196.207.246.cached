@@ -1,0 +1,15 @@
+{
+  "key": "206.196.207.246",
+  "result": {
+    "zip_code": "46952",
+    "city": "Marion",
+    "region_name": "Indiana",
+    "latitude": 40,
+    "metro_code": 527,
+    "longitude": -85,
+    "country_code": "US",
+    "region_code": "IN",
+    "time_zone": "America/Indiana/Indianapolis",
+    "country_name": "United States"
+  }
+}
