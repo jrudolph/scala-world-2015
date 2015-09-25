@@ -56,6 +56,7 @@ object Step6 extends Scaffolding with App {
 
   lazy val ipResolver = new FreeGeoIPResolver()
   def resolveIPInfo(entry: RepoAccess): Future[RepoAccess] =
+    // alternatively, use `ipResolver.getFromCache` to get data only from cache
     ipResolver.infoFor(entry.ip).map(info ⇒ entry.copy(ipInfo = info))
 
   def updateHistogram(groupByKey: RepoAccess ⇒ Option[String])(histogram: GroupIdHistogram,
