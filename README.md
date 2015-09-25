@@ -7,9 +7,9 @@ log-service/re-start
 backend/runMain example.repoanalyzer.Step6
 ```
 
-Then, open the browser at http://localhost:8080. All the other steps should work as well.
+Then, open the browser at [http://localhost:8080](http://localhost:8080). All the other steps should work as well.
 
-Geo IP resolution uses the server at http://freegeoip.net/ which only allows a certain quota of free requests per time
+Geo IP resolution uses the server at http://freegeoip.net/ which only allows a certain quota of free requests per period
 (though requests will be cached between runs, see `Cache` and the `ip-cache` folder). Also, we experienced some downtime
 of this free server so we included part of the cache with the source code.
 
