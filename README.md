@@ -14,3 +14,7 @@ Geo IP resolution uses the server at http://freegeoip.net/ which only allows a c
 of this free server so we included part of the cache with the source code.
 
 The sources contain an example log file to replay which contains a big amount of nonsense data in the right format.
+
+Here's the output of running Step5:
+
+![Step 5 output screencast](https://raw.githubusercontent.com/jrudolph/scala-world-2015/master/screencast.gif)
